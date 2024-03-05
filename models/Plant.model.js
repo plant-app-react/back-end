@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const mongoose = require("mongoose");
 
 const plantSchema = new Schema({
   name: { type: String, required: true },
@@ -9,6 +10,7 @@ const plantSchema = new Schema({
   location: { type: String, enum: ["interior", "exterior"] },
   directSunlight: { type: Boolean, default: false },
   toxicity: { type: Boolean, default: false },
+  carePlan: { type: mongoose.Schema.Types.ObjectId, ref: "Careplan" },
 });
 
 const Plant = model("Plant", plantSchema);

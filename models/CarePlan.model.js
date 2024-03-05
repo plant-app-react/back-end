@@ -1,4 +1,5 @@
 const { Schema, model } = require("mongoose");
+const mongoose = require("mongoose");
 
 const carePlanSchema = new Schema({
   water: { type: String },
@@ -6,6 +7,7 @@ const carePlanSchema = new Schema({
   mist: { type: String },
   clean: { type: String },
   repot: { type: String },
+  plant: { type: mongoose.Schema.Types.ObjectId, ref: "Plant" },
 });
 
 const CarePlan = model("CarePlan", carePlanSchema);
