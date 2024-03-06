@@ -5,7 +5,13 @@ const CarePlan = require("../models/CarePlan.model");
 
 //GET
 router.get("/plants/:plantId/careplan", (req, res, next) => {
-  CarePlan.find()
+  const { plantId } = req.params;
+  // validate plantId
+  if (!mongoose.Types.ObjectId.isValid(plantId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+  CarePlan.findOne({ plant: plantId })
     .then((carePlanFromDB) => {
       res.json(carePlanFromDB);
     })
@@ -52,8 +58,8 @@ router.put("/plants/:plantId/careplan", (req, res, next) => {
     return;
   }
 
-  CarePlan.findByIdAndUpdate(
-    plantId,
+  CarePlan.findOneAndUpdate(
+    { plant: plantId },
     { water, fertilize, mist, clean, repot },
     { new: true }
   )
@@ -77,7 +83,7 @@ router.delete("/plants/:plantId/careplan", (req, res, next) => {
     return;
   }
 
-  CarePlan.findByIdAndDelete(plantId)
+  CarePlan.findOneAndDelete({ plant: plantId })
     .then(() => {
       res.json({ message: `Care plan removed successfully.` });
     })
