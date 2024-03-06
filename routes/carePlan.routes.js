@@ -23,31 +23,50 @@ router.get("/plants/:plantId/careplan", (req, res, next) => {
 });
 
 //POST
+//POST
 router.post("/plants/:plantId/careplan", (req, res, next) => {
   const { water, fertilize, mist, clean, repot } = req.body;
   const { plantId } = req.params;
-  const newCarePlan = {
-    water,
-    fertilize,
-    mist,
-    clean,
-    repot,
-    plant: plantId,
-  };
 
-  CarePlan.create(newCarePlan)
-    .then((carePlanFromDB) => {
-      res.status(201).json(carePlanFromDB);
+  // Check if a care plan already exists for the plant
+  CarePlan.findOne({ plant: plantId })
+    .then((existingCarePlan) => {
+      if (existingCarePlan) {
+        // If a care plan already exists, return an error message
+        res
+          .status(400)
+          .json({ message: "A care plan already exists for this plant" });
+      } else {
+        // If no care plan exists, create a new care plan
+        const newCarePlan = {
+          water,
+          fertilize,
+          mist,
+          clean,
+          repot,
+          plant: plantId,
+        };
+
+        CarePlan.create(newCarePlan)
+          .then((carePlanFromDB) => {
+            res.status(201).json(carePlanFromDB);
+          })
+          .catch((e) => {
+            console.log("Error creating care plan");
+            console.log(e);
+            res.status(500).json({ message: "Error creating care plan" });
+          });
+      }
     })
     .catch((e) => {
-      console.log("Error creating care plan");
+      console.log("Error checking existing care plan");
       console.log(e);
-      res.status(500).json({ message: "Error creating care plan" });
+      res.status(500).json({ message: "Error checking existing care plan" });
     });
 });
 
 //PUT
-router.put("/plants/:plantId/careplan", (req, res, next) => {
+router.put("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   const { plantId } = req.params;
   console.log(plantId);
   const { water, fertilize, mist, clean, repot } = req.body;
@@ -74,24 +93,28 @@ router.put("/plants/:plantId/careplan", (req, res, next) => {
 });
 
 //DELETE
-router.delete("/plants/:plantId/careplan", (req, res, next) => {
-  const { plantId } = req.params;
+router.delete(
+  "/plants/:plantId/careplan",
+  isAuthenticated,
+  (req, res, next) => {
+    const { plantId } = req.params;
 
-  // validate plantId
-  if (!mongoose.Types.ObjectId.isValid(plantId)) {
-    res.status(400).json({ message: "Specified id is not valid" });
-    return;
+    // validate plantId
+    if (!mongoose.Types.ObjectId.isValid(plantId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    CarePlan.findOneAndDelete({ plant: plantId })
+      .then(() => {
+        res.json({ message: `Care plan removed successfully.` });
+      })
+      .catch((e) => {
+        console.log("Error deleting care plan");
+        console.log(e);
+        res.status(500).json({ message: "Error deleting care plan" });
+      });
   }
-
-  CarePlan.findOneAndDelete({ plant: plantId })
-    .then(() => {
-      res.json({ message: `Care plan removed successfully.` });
-    })
-    .catch((e) => {
-      console.log("Error deleting care plan");
-      console.log(e);
-      res.status(500).json({ message: "Error deleting care plan" });
-    });
-});
+);
 
 module.exports = router;
