@@ -23,21 +23,17 @@ router.get("/plants/:plantId/careplan", (req, res, next) => {
 });
 
 //POST
-//POST
 router.post("/plants/:plantId/careplan", (req, res, next) => {
   const { water, fertilize, mist, clean, repot } = req.body;
   const { plantId } = req.params;
 
-  // Check if a care plan already exists for the plant
   CarePlan.findOne({ plant: plantId })
     .then((existingCarePlan) => {
       if (existingCarePlan) {
-        // If a care plan already exists, return an error message
         res
           .status(400)
           .json({ message: "A care plan already exists for this plant" });
       } else {
-        // If no care plan exists, create a new care plan
         const newCarePlan = {
           water,
           fertilize,
@@ -71,7 +67,6 @@ router.put("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   console.log(plantId);
   const { water, fertilize, mist, clean, repot } = req.body;
 
-  // validate plantId
   if (!mongoose.Types.ObjectId.isValid(plantId)) {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
@@ -99,7 +94,6 @@ router.delete(
   (req, res, next) => {
     const { plantId } = req.params;
 
-    // validate plantId
     if (!mongoose.Types.ObjectId.isValid(plantId)) {
       res.status(400).json({ message: "Specified id is not valid" });
       return;
