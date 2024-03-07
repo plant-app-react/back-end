@@ -51,4 +51,28 @@ router.post("/plants", (req, res, next) => {
     });
 });
 
+//DELETE
+router.delete(
+  "/plants/:plantId",
+  isAuthenticated,
+  (req, res, next) => {
+    const { plantId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(plantId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    Plant.findByIdAndDelete(plantId)
+      .then(() => {
+        res.json({ message: `Plant removed successfully.` });
+      })
+      .catch((e) => {
+        console.log("Error deleting care plan");
+        console.log(e);
+        res.status(500).json({ message: "Error deleting care plan" });
+      });
+  }
+);
+
 module.exports = router;
