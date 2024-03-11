@@ -1,6 +1,6 @@
 const { Schema, model } = require("mongoose");
+const mongoose = require("mongoose");
 
-// TODO: Please make sure you edit the User model to whatever makes sense in this case
 const userSchema = new Schema(
   {
     email: {
@@ -18,6 +18,10 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Name is required."],
     },
+    favorites: [{
+      type: mongoose.Schema.Types.String,
+      ref: 'Plant'
+  }]
   },
   {
     // this second object adds extra properties: `createdAt` and `updatedAt`

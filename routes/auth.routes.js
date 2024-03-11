@@ -128,4 +128,47 @@ router.get("/verify", isAuthenticated, (req, res, next) => {
   res.status(200).json(req.payload);
 });
 
+//////////////////////////////// USER FAVORITE PLANTS ////////////////////////////////
+
+// POST /auth/favorites/:plantId - Add or remove a plant from user's favorites list
+router.post("/favorites/:plantId", isAuthenticated, async (req, res, next) => {
+  const { plantId } = req.params;
+  const userId = req.payload._id;
+
+  try {
+    const user = await User.findById(userId);
+
+    // Check if the plant is already in favorites
+    const index = user.favorites.indexOf(plantId);
+    if (index === -1) {
+      // If not in favorites, add it
+      user.favorites.push(plantId);
+    } else {
+      // If already in favorites, remove it
+      user.favorites.splice(index, 1);
+    }
+
+    await user.save();
+    res.status(200).json({ message: "Favorite updated successfully" });
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+// GET /auth/favorites - Fetch user's favorite plants
+router.get("/favorites", isAuthenticated, async (req, res, next) => {
+  const userId = req.payload._id;
+
+  try {
+    const user = await User.findById(userId).populate("favorites");
+    res.status(200).json(user.favorites);
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+
+
 module.exports = router;
