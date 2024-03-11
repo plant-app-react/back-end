@@ -168,7 +168,24 @@ router.get("/favorites", isAuthenticated, async (req, res, next) => {
   }
 });
 
+// DELETE /auth/favorites/:plantId - Remove a plant from user's favorites list
+router.delete("/favorites/:plantId", isAuthenticated, async (req, res, next) => {
+  const { plantId } = req.params;
+  const userId = req.payload._id;
 
+  try {
+    const user = await User.findById(userId);
+    const index = user.favorites.indexOf(plantId);
+
+    // Remove the plant from user's favorites
+    user.favorites.splice(index, 1);
+    await user.save();
+
+    res.status(200).json({ message: "Plant removed from favorites successfully" });
+  } catch (err) {
+    next(err);
+  }
+});
 
 
 module.exports = router;
