@@ -2,6 +2,7 @@ const router = require("express").Router();
 const mongoose = require("mongoose");
 const { isAuthenticated } = require("../middleware/jwt.middleware");
 const Plant = require("../models/Plant.model");
+const fileUploader = require("../config/cloudinary.config");
 
 //GET
 router.get("/plants", (req, res, next) => {
@@ -36,12 +37,29 @@ router.get("/plants/:plantId", (req, res, next) => {
     });
 });
 
+//POST img with Cloudinary
+
+router.post("/upload", fileUploader.single("image"), (req, res, next) => {
+  // console.log("file is: ", req.file)
+
+  if (!req.file) {
+    next(new Error("No file uploaded!"));
+    return;
+  }
+
+  // Get the URL of the uploaded file and send it as a response.
+  // 'fileUrl' can be any name, just make sure you remember to use the same when accessing it on the frontend
+
+  res.json({ fileUrl: req.file.path });
+});
+
 //POST
 router.post("/plants", (req, res, next) => {
   const { name, image, location, directSunlight, toxicity } = req.body;
 
   Plant.create({ name, image, location, directSunlight, toxicity })
     .then((plantFromDB) => {
+      console.log(plantFromDB);
       res.status(201).json(plantFromDB);
     })
     .catch((e) => {
@@ -52,27 +70,23 @@ router.post("/plants", (req, res, next) => {
 });
 
 //DELETE
-router.delete(
-  "/plants/:plantId",
-  isAuthenticated,
-  (req, res, next) => {
-    const { plantId } = req.params;
+router.delete("/plants/:plantId", isAuthenticated, (req, res, next) => {
+  const { plantId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(plantId)) {
-      res.status(400).json({ message: "Specified id is not valid" });
-      return;
-    }
-
-    Plant.findByIdAndDelete(plantId)
-      .then(() => {
-        res.json({ message: `Plant removed successfully.` });
-      })
-      .catch((e) => {
-        console.log("Error deleting care plan");
-        console.log(e);
-        res.status(500).json({ message: "Error deleting care plan" });
-      });
+  if (!mongoose.Types.ObjectId.isValid(plantId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
   }
-);
+
+  Plant.findByIdAndDelete(plantId)
+    .then(() => {
+      res.json({ message: `Plant removed successfully.` });
+    })
+    .catch((e) => {
+      console.log("Error deleting care plan");
+      console.log(e);
+      res.status(500).json({ message: "Error deleting care plan" });
+    });
+});
 
 module.exports = router;
