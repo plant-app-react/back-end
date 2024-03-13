@@ -7,8 +7,7 @@ const plantSchema = new Schema({
   location: { type: String, enum: ["interior", "exterior"] },
   directSunlight: { type: Boolean, default: false },
   toxicity: { type: Boolean, default: false },
-  difficulty: {type: String, enum: ["Easy Care", "High Maintenance"]},
-  carePlan: { type: mongoose.Schema.Types.ObjectId, ref: "Careplan" },
+  difficulty: {type: String, enum: ["Easy Care", "High Maintenance"]}
 });
 
 const Plant = model("Plant", plantSchema);

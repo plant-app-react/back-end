@@ -4,14 +4,16 @@ const { isAuthenticated } = require("../middleware/jwt.middleware");
 const CarePlan = require("../models/CarePlan.model");
 
 //GET
-router.get("/plants/:plantId/careplan", (req, res, next) => {
+router.get("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   const { plantId } = req.params;
+  const userId = req.payload._id;
+  console.log(req.user)
   // validate plantId
   if (!mongoose.Types.ObjectId.isValid(plantId)) {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
   }
-  CarePlan.findOne({ plant: plantId })
+  CarePlan.findOne({ plant: plantId, user: userId })
     .then((carePlanFromDB) => {
       res.json(carePlanFromDB);
     })
@@ -23,49 +25,40 @@ router.get("/plants/:plantId/careplan", (req, res, next) => {
 });
 
 //POST
-router.post("/plants/:plantId/careplan", (req, res, next) => {
+router.post("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   const { water, fertilize, mist, clean, repot } = req.body;
   const { plantId } = req.params;
+  const userId = req.payload._id;
+  console.log(userId)
 
-  CarePlan.findOne({ plant: plantId })
-    .then((existingCarePlan) => {
-      if (existingCarePlan) {
-        res
-          .status(400)
-          .json({ message: "A care plan already exists for this plant" });
-      } else {
-        const newCarePlan = {
-          water,
-          fertilize,
-          mist,
-          clean,
-          repot,
-          plant: plantId,
-        };
+  const newCarePlan = {
+    water,
+    fertilize,
+    mist,
+    clean,
+    repot,
+    plant: plantId,
+    user: userId
+  };
 
-        CarePlan.create(newCarePlan)
-          .then((carePlanFromDB) => {
-            res.status(201).json(carePlanFromDB);
-          })
-          .catch((e) => {
-            console.log("Error creating care plan");
-            console.log(e);
-            res.status(500).json({ message: "Error creating care plan" });
-          });
-      }
+  CarePlan.create(newCarePlan)
+    .then((carePlanFromDB) => {
+      res.status(201).json(carePlanFromDB);
     })
     .catch((e) => {
-      console.log("Error checking existing care plan");
+      console.log("Error creating care plan");
       console.log(e);
-      res.status(500).json({ message: "Error checking existing care plan" });
+      res.status(500).json({ message: "Error creating care plan" });
     });
-});
+})
+
+
 
 //PUT
 router.put("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   const { plantId } = req.params;
-  console.log(plantId);
   const { water, fertilize, mist, clean, repot } = req.body;
+  const userId = req.payload._id;
 
   if (!mongoose.Types.ObjectId.isValid(plantId)) {
     res.status(400).json({ message: "Specified id is not valid" });
@@ -73,7 +66,7 @@ router.put("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   }
 
   CarePlan.findOneAndUpdate(
-    { plant: plantId },
+    { plant: plantId, user: userId },
     { water, fertilize, mist, clean, repot },
     { new: true }
   )
@@ -93,13 +86,14 @@ router.delete(
   isAuthenticated,
   (req, res, next) => {
     const { plantId } = req.params;
+    const userId = req.payload._id;
 
     if (!mongoose.Types.ObjectId.isValid(plantId)) {
       res.status(400).json({ message: "Specified id is not valid" });
       return;
     }
 
-    CarePlan.findOneAndDelete({ plant: plantId })
+    CarePlan.findOneAndDelete({ plant: plantId, user: userId })
       .then(() => {
         res.json({ message: `Care plan removed successfully.` });
       })
