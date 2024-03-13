@@ -7,7 +7,7 @@ const CarePlan = require("../models/CarePlan.model");
 router.get("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
   const { plantId } = req.params;
   const userId = req.payload._id;
-  console.log(req.user)
+
   // validate plantId
   if (!mongoose.Types.ObjectId.isValid(plantId)) {
     res.status(400).json({ message: "Specified id is not valid" });
@@ -20,6 +20,21 @@ router.get("/plants/:plantId/careplan", isAuthenticated, (req, res, next) => {
     .catch((e) => {
       console.log("Error getting details of care plan");
       console.log(e);
+      res.status(500).json({ message: "Error details of care plan" });
+    });
+});
+
+//GET ALL CAREPLANS
+router.get("/careplans", isAuthenticated, (req, res, next) => {
+
+  const userId = req.payload._id;
+
+  CarePlan.find({ user: userId })
+    .populate('plant')
+    .then((carePlansFromDB) => {
+      res.json(carePlansFromDB);
+    })
+    .catch((e) => {
       res.status(500).json({ message: "Error details of care plan" });
     });
 });
