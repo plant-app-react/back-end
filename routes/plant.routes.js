@@ -55,9 +55,10 @@ router.post("/upload", fileUploader.single("image"), (req, res, next) => {
 
 //POST
 router.post("/plants", (req, res, next) => {
-  const { name, image, location, directSunlight, toxicity } = req.body;
+  const { name, image, location, directSunlight, toxicity, difficulty } =
+    req.body;
 
-  Plant.create({ name, image, location, directSunlight, toxicity })
+  Plant.create({ name, image, location, directSunlight, toxicity, difficulty })
     .then((plantFromDB) => {
       console.log(plantFromDB);
       res.status(201).json(plantFromDB);
